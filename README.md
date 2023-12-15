@@ -8,3 +8,6 @@
 
 사용 데이터
 수소 충전소 실시간 데이터 : https://www.h2nbiz.or.kr/sym/mnu/mpm/EgovMainMenuIndex.do?menuNo=50800&chkURL=/rt/uif/api/openApiInfo.do
+
+1. python server.py
+2. streamlit run main.py
