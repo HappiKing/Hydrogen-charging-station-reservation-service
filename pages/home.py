@@ -35,7 +35,8 @@ area16 = ["시/군/구 선택", "서귀포시","제주시"]
 
 # 충전소 위치 정보 불러오기
 df1 = pd.DataFrame(get_point()) # 위도, 경도, 주소 데이터 가져오기
-df2 = pd.DataFrame(get_res(1))  # API 값 가져오기
+df2 = pd.DataFrame(get_res())  # API 값 가져오기
+
 df = pd.merge(df1, df2, on='chrstn_mno')
 
 # 지역 선택
@@ -173,7 +174,7 @@ def main_page() :
 
     # 메인 화면
     with con1 :
-        st.title("수소 충전소 예약 서비스")
+        st.title("수소차 충전소 예약 서비스")
 
         # 충전소 마커 옵션
         chr_view = st.sidebar.radio(
@@ -183,8 +184,8 @@ def main_page() :
 
         # 가게 정보를 리스트로 저장 (위치, 가게명)
         stores = []
-        for item in df[["chrstn_nm_x","latitude","longitude", "oper_sttus_nm", "oper_sttus_cd", "address"]].values.tolist() : # 충전소 명, 위도, 경도, 운영 정보(숫자), 운영정보(문자)
-            stores.append({'location' : item[1:3], 'name' : item[0], 'oper_sttus_nm' : item[3], "oper_sttus_cd" : item[4], "address" : item[5]})
+        for item in df[["chrstn_nm_x","latitude","longitude", "oper_sttus_nm", "oper_sttus_cd", "address", "tt_pressr", "cnf_sttus_nm"]].values.tolist() : # 충전소 명, 위도, 경도, 운영 정보(숫자), 운영정보(문자)
+            stores.append({'location' : item[1:3], 'name' : item[0], 'oper_sttus_nm' : item[3], "oper_sttus_cd" : item[4], "address" : item[5], "tt_pressr" : item[6], "cnf_sttus_nm" : item[7]})
 
 
         # 마커와 팝업 생성
@@ -193,7 +194,7 @@ def main_page() :
                 if (store['oper_sttus_cd'] == '30') : # 영업 중
                     icon = Icon(color='blue')  # 색상을 여기서 'blue'로 변경하세요.
                     marker = Marker(location=store['location'], icon=icon)
-                    popup = Popup(store['name']+f"<br>주소 : {store['address']}<br>운영 상태 : {store['oper_sttus_nm']}",min_width=100, max_width=300,)
+                    popup = Popup(store['name']+f"<br>주소 : {store['address']}<br>운영 상태 : {store['oper_sttus_nm']}<br>TT압력 : {store['tt_pressr']}bar<br>혼잡 상태 : {store['cnf_sttus_nm']}",min_width=100, max_width=300,)
                     popup.add_to(marker)
                     marker.add_to(m)
 
@@ -234,10 +235,8 @@ def main_page() :
                 filtered_df_sttus = df[df['chrstn_nm_x'].str.contains(keyword, case=False, na=False)]
                 status = int(filtered_df_sttus["oper_sttus_cd"])
 
-                
-
                 if status == 20 :
-                    st.sidebar.button("예약", disabled=True)
+                    st.sidebar.button("예약", disabled=False)
                 elif status == 30 :
                     if st.sidebar.button("예약", disabled=False):
                         # 예약 페이지에 선택한 충전소 값 전달
@@ -245,10 +244,15 @@ def main_page() :
                         nav_page("reservation")
         
                 else :
-                    st.sidebar.button("예약", disabled=True)
+                    st.sidebar.button("예약", disabled=False)
                     
             except :
                 pass
+
+        
+        if st.sidebar.button("내 예약 정보 확인") :
+            nav_page("myres")
+
                 
         # Streamlit에 지도 표시
         st_folium = streamlit_folium.st_folium(m, use_container_width=True, width=50, height=500)
